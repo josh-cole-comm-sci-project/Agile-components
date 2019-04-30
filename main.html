@@ -1,0 +1,33 @@
+<html>
+    <style>
+         #button1 {
+            font-size: 140%;
+            border: 1px;
+            font-family: fantasy;
+            background-color: white;
+            color: black;
+            height: 35px;
+            width: 100px;
+            float:right;
+
+        }
+        #button1:hover {
+            background-color: crimson;
+            color: black;
+            height: 35px;
+            width: 120px;
+        }
+    </style>
+    <script>
+    function signin() {
+            console.log("Signing in");
+            var provider = new firebase.auth.GoogleAuthProvider();
+            firebase.auth().signInWithRedirect(provider).then(function(result) { 
+                window.location.replace("fbtest.html");
+            });
+        }
+    </script>
+<img src="red.jpg" style="height: 100%; width: 100%">
+    <center><button id=button1 onclick="signin()">Sign in</button></center>
+    <center><button id=button1 src="index.html">Go to Main Page</button></center>
+</html
