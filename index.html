@@ -96,16 +96,17 @@
                     var time = date.toString();
                     if (data[u][t].img != "") {
                         mytab = mytab + "<td><img src='" + users[u].profile_picture + "' width='50px'></td>";
-                        mytab = mytab + "<td>" + users[u].email + "</td>";
-                        mytab = mytab + "<td>" + data[u][t].tweet + "</td>";
-                        mytab = mytab + "<td>" + time + "<br><img src='" + data[u][t].img + "' width='300px'></td>";
+                        mytab = mytab + "<td>" + users[u].username + "</td>";
+                        mytab = mytab + "<td>" + "<div id='tweetdiv'>" + data[u][t].tweet + "</div></td>";
+                        mytab = mytab + "<td>" + time + "<br><img src='" + data[u][t].img + "' ></td>";
+                        mytab = mytab + "<td><button>like</button></td>"
                         
                     } else { 
                         mytab = mytab + "<td><img src='" + users[u].profile_picture + "' width='50px'></td>";
-                        mytab = mytab + "<td>" + users[u].email + "</td>";
-                        mytab = mytab + "<td>" + data[u][t].tweet + "</td>";
+                        mytab = mytab + "<td>" + users[u].username + "</td>";
+                        mytab = mytab + "<td>" + "<div id='tweetdiv'>" + data[u][t].tweet + "</div></td>";
                         mytab = mytab + "<td>" + time + "</td>";
-
+                        mytab = mytab + "<td><button>like</button></td>"
                     } 
                     mytab = mytab + "</tr>";
                 }   
@@ -113,6 +114,7 @@
             //mylist = mylist + "</ul>";
             mytab = mytab + "</table>";
             var mytdiv = document.getElementById("mytweets");
+            
             //mytdiv.innerHTML = mylist;
             mytdiv.innerHTML = mytab;
         }
@@ -120,6 +122,31 @@
         
         
 
+        
+        function getData() {
+            //var userId = document.getElementById("uid").innerHTML;
+            firebase.database().ref('/users').once('value',
+            function(snapshot) {
+                console.log(snapshot.val());
+                
+                myfdiv = document.getElementById("users");
+                
+                mykeys = Object.keys(snapshot.val());
+                mylist = "<ul>"
+                for (currkey of mykeys) {
+                    myuniques = Object.keys(snapshot.val()[currkey]);
+                    var count = 0;
+                    for (curuniques of myuniques) {
+                        mylist = mylist + "<li>" + snapshot.val()[mykeys][myuniques[count]].time + "</li>"
+                        count = count + 1;
+                    }
+                }
+                mylist = mylist + "</ul>"
+                mydiv.innerHTML = mylist;
+            });
+            };
+                                                   
+                                                   
         function tweet() {
             
             var twitdoc = document.getElementById("twit");
@@ -192,10 +219,11 @@
             firebase.auth().signOut().then(function() {
             });
         }
-        
-
+    
     
     </script>
+
+    
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         #mytweets {
@@ -224,6 +252,14 @@
             background-color: white;
             height: 36px;
             padding: 5px;
+            position: fixed;
+            
+        }
+        #tweetdiv {
+            height: 100px;
+            width: 100px;
+            background-color: black;
+            
         }
         #button1 {
             font-size: 140%;
@@ -232,7 +268,7 @@
             background-color: white;
             color: black;
             height: 35px;
-            width: 100px;
+            width: 110px;
             float:right;
 
         }
@@ -280,6 +316,7 @@
         </style>
     <nav id=nav1>
         <button id=button1>About</button>
+        <button id="button1" onclick="getData()">Get Data</button>
         <button id=button1 onclick="signin()">Sign in</button>
         <button id=button1 onclick="signout()">Sign out</button>
     
@@ -296,16 +333,12 @@
           </div>
         </div>
     </nav>
-    <div id="twitdiv">
-    <div id="ratediv">
-        
+    <div id="myfdiv" style="float: right"></div>
+    <div id="twitdiv"></div>
     <button id="button2" onclick="rate1()">That's So Cool!</button>
     <button id="button2" onclick="rate2()">That's Hilarious!</button>
     <button id="button2" onclick="rate3()">Interesting!</button>
-     <button id="button2" onclick="rate4()">O!</button>
-        
-    </div>
-        </div>
+    <button id="button2" onclick="rate4()">O!</button>
         <br>
         <nav id="nav2">
         <form>
@@ -314,7 +347,7 @@
         </form> 
         <center><button type="button" onclick="tweet()">Submit</button></center>
     
-        <br><center><input id="inputFileToLoad" type="file" onchange="encodeImageFileAsURL();" /><button type="button" onclick="clear()">Clear</button></center>
+       <center><input id="inputFileToLoad" type="file" onchange="encodeImageFileAsURL();" /><button type="button" onclick="clear()">Clear</button></center>
         </nav>
         <div id="imgTest" style="display:none;"></div>
         <div id="mytweets"></div>  
