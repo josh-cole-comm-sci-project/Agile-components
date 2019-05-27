@@ -7,8 +7,8 @@
             background-color: white;
             color: black;
             height: 35px;
-            width: 100px;
-            float:right;
+            width: 120px;
+
 
         }
         #button1:hover {
@@ -17,17 +17,195 @@
             height: 35px;
             width: 120px;
         }
+          #button2 {
+            font-size: 140%;
+            border: 1px;
+            font-family: fantasy;
+            background-color: white;
+            color: black;
+            height: 35px;
+            width: 200px;
+
+        }
+        #button2:hover {
+            background-color: crimson;
+            color: black;
+            height: 35px;
+            width: 220px;
+        }
+        body {
+            background-image: url(red.jpg);
+        }
+        nav {
+            position: fixed;
+            background-color: red;
+            float: left;
+        }
     </style>
-    <script>
-    function signin() {
+     <script src="https://www.gstatic.com/firebasejs/5.7.3/firebase.js"></script>
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    
+   <script>
+        // Initialize Firebase
+        var config = {
+            apiKey: "AIzaSyDprd3C-ClUWhjse20oFnup5BJpvU4g0B8",
+            authDomain: "project-17c59.firebaseapp.com",
+            databaseURL: "https://project-17c59.firebaseio.com",
+            projectId: "project-17c59",
+            storageBucket: "project-17c59.appspot.com",
+            messagingSenderId: "424326686025"
+        };
+        firebase.initializeApp(config);
+                
+        // Check to see if you are logged in
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user == null) {
+                alert("Not logged in.");
+                return;
+            } else {
+                userId = user.uid;
+                name = user.displayName;
+                imageUrl = user.photoURL;
+                email = user.email;
+                comments = null;
+                    
+                // write user data to users
+                writeUserData(userId, name, email, imageUrl, comments);
+                
+                // write data to document
+                mydiv = document.getElementById("mydata");
+                mydiv.innerHTML = name
+                myphotodiv = document.getElementById("myphoto");
+                myphotodiv.innerHTML = "<img src='" + imageUrl + "'/>";
+
+                firebase.database().ref('/tweets').once('value').then(function(snapshot) {
+                    var data = (snapshot.val());
+                    if (data == null) {
+                      console.log("No data found at /tweets/" + userId);  
+                    } else {
+                        
+                      firebase.database().ref('/users').once('value').then(function(snapshot) { 
+                        var userdata = (snapshot.val());
+                        if (userdata != null) {
+                           dataarray = [data,userdata]
+                           console.log(dataarray)
+                           updatetweets(dataarray); 
+                        }
+                      });
+                      //console.log(data)
+                      //updatetweets(data);
+                    }
+                });
+            } // end user null check
+        }); // end check auth state
+        
+        function encodeImageFileAsURL() {
+
+            var filesSelected = document.getElementById("inputFileToLoad").files;
+            if (filesSelected.length > 0) {
+                var fileToLoad = filesSelected[0];
+                var fileReader = new FileReader();
+                fileReader.onload = function(fileLoadedEvent) {
+                    var srcData = fileLoadedEvent.target.result; // <--- data: base64
+                    //var newImage = document.createElement('img');
+                    //newImage.src = srcData;
+                    //document.getElementById("imgTest").innerHTML = newImage.outerHTML;
+                    document.getElementById("imgTest").innerHTML = srcData;
+                    //console.log("Converted Base64 version is: " + document.getElementById("imgTest").innerHTML);
+                    console.log(srcData);
+                }
+                fileReader.readAsDataURL(fileToLoad);
+            }
+        } // end function
+        
+        // write user data
+        function writeUserData(userId, name, email, imageUrl) {
+            firebase.database().ref('users/' + userId).set({
+                username: name,
+                email: email,
+                profile_picture : imageUrl
+            });
+        }
+        
+
+        
+        function getData() {
+            //var userId = document.getElementById("uid").innerHTML;
+            firebase.database().ref('/users').once('value',
+            function(snapshot) {
+                console.log(snapshot.val());
+                
+                myfdiv = document.getElementById("users");
+                
+                mykeys = Object.keys(snapshot.val());
+                mylist = "<ul>"
+                for (currkey of mykeys) {
+                    myuniques = Object.keys(snapshot.val()[currkey]);
+                    var count = 0;
+                    for (curuniques of myuniques) {
+                        mylist = mylist + "<li>" + snapshot.val()[mykeys][myuniques[count]].time + "</li>"
+                        count = count + 1;
+                    }
+                }
+                mylist = mylist + "</ul>"
+                mydiv.innerHTML = mylist;
+            });
+            };
+                                                                                       
+        function tweet() {
+            
+            var twitdoc = document.getElementById("twit");
+            var twitimg = document.getElementById("imgTest");
+            var twitrate = document.getElementById("twitdiv").innerHTML;
+            var nameValue = twitdoc.value;
+            var imgValue = twitimg.innerHTML;
+            var js_time = Date.now();
+            twitdoc.value = "";
+            imgValue = "";
+            console.log("tweet written")
+            
+            firebase.database().ref('/tweets').once('value').then(function(snapshot) {
+                    var data = (snapshot.val());
+                    if (data == null) {
+                      console.log("No data found at /tweets/" + userId);  
+                    } else { 
+                        firebase.database().ref('/users').once('value').then(function(snapshot) { 
+                        var userdata = (snapshot.val());
+                        if (userdata != null) {
+                           dataarray = [data,userdata]
+                           console.log(dataarray)
+                           updatetweets(dataarray); 
+                        }
+                      });
+                    }
+                });
+            
+            
+            
+            // The unique key stored in tweetid is based on a timestamp, so list items will automatically be ordered chronologically. Because Firebase generates a unique key for each tweet, no write conflicts will occur if multiple users add a post at the same time. https://firebase.google.com/docs/database/admin/save-data
+            
+        }
+        
+        function signin() {
             console.log("Signing in");
             var provider = new firebase.auth.GoogleAuthProvider();
             firebase.auth().signInWithRedirect(provider).then(function(result) { 
                 window.location.replace("fbtest.html");
             });
         }
+        
+        function signout() {
+            console.log("Signing out");
+            firebase.auth().signOut().then(function() {
+            });
+        }
+    
+    
     </script>
-<img src="red.jpg" style="height: 100%; width: 100%">
-    <center><button id=button1 onclick="signin()">Sign in</button></center>
-    <center><button id=button1 src="index.html">Go to Main Page</button></center>
+    <nav>
+    <button id=button1 onclick="signin()">Sign in</button>
+    <button id=button2 href="index.html">Go to Main Page</button>
+    </nav>
+    <center><a style="color: lightgray; position: absolute; top: 290px;font-size: 200%">Welcome To:</a></center><br>
+    <center><a style="color: white;position: absolute; top: 320px; font-size: 350%">INSTASHARE</a></center>
 </html

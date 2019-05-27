@@ -1,4 +1,42 @@
 <html style="background-color: crimson">
+    <button class="collapsible"></button>
+    <div class="content">
+  <nav id=nav1>
+      <div class="dropdown">
+             <button id="button1" class="dropbtn">Tweet</button>
+          <div class="dropdown-content">
+            <a>
+               <nav id="nav2">
+        <form>
+            <center>Tweet:<br></center>
+            <center><textarea id="twit" type="text" name="thetweet" cols="100" rows="3"></textarea></center>
+        </form> 
+        <center><button type="button" onclick="tweet()">Submit</button></center>
+    
+       <center><input id="inputFileToLoad" type="file" onchange="encodeImageFileAsURL();" /><button type="button" onclick="clear()">Clear</button></center>
+        </nav>
+            </a>
+          </div>
+        </div>
+        <button id=button1>About</button>
+        <button id=button1 onclick="signin()">Sign in</button>
+        <button id=button1 onclick="signout()">Sign out</button>
+        <div class="dropdown">
+            
+          <button id="button1" class="dropbtn">Profile</button>
+          <div class="dropdown-content">
+            <a>
+                <div style="font-size: 150%">Your Profile:</div>
+                Name:<div id="mydata"></div>
+                <br>
+                <div id="myphoto"></div>
+            </a>
+          </div>
+        </div>
+    </nav>
+</div>
+    <br>
+    <center style="font-size: 300%">Instashare!</center>
     <script src="https://www.gstatic.com/firebasejs/5.7.3/firebase.js"></script>
     <script src="https://apis.google.com/js/platform.js" async defer></script>
     
@@ -24,9 +62,10 @@
                 name = user.displayName;
                 imageUrl = user.photoURL;
                 email = user.email;
+                comments = null;
                     
                 // write user data to users
-                writeUserData(userId, name, email, imageUrl);
+                writeUserData(userId, name, email, imageUrl, comments);
                 
                 // write data to document
                 mydiv = document.getElementById("mydata");
@@ -82,31 +121,55 @@
                 profile_picture : imageUrl
             });
         }
-        
-        function updatetweets(data) {
+         function comment() {
+            var comdoc = document.getElementById("comment1").value;
+            var tweetid = firebase.database().ref('tweets/' + userId + "/").push({comments: comdoc});
+            comdoc = "";
+        }     
+        function updatetweets(data,comdoc) {
             //var mylist = "<ul>";
-            var mytab = "<table>";
+            var mytab = "<table class="+ "w3-table w3-bordered" + ">";
+            var myctab = "<table class="+ "w3-table w3-bordered" + ">";
             users = data[1]; // put on top, because changed data - not good coding change later
             data = data[0];
-            
+            count = 1;
             for (var u in data) {
                 for (var t in data[u]) {
                     mytab = mytab + "<tr>";
                     var date = new Date(data[u][t].time);
-                    var time = date.toString();
+                    var comment = data[u][t].comments
+                    var likes = data[u][t].likes
+                    if (date.toString().substring(16,18) > 12) {
+                        var time = date.toString().substring(4,10) + ", " + (date.toString().substring(16,18)-12) + date.toString().substring(18,21) + "pm";
+                    } else {
+                        var time = date.toString().substring(4,10) + ", " + date.toString().substring(16,21) + "am";
+                    }
                     if (data[u][t].img != "") {
-                        mytab = mytab + "<td><img src='" + users[u].profile_picture + "' width='50px'></td>";
-                        mytab = mytab + "<td>" + users[u].username + "</td>";
-                        mytab = mytab + "<td>" + "<div id='tweetdiv'>" + data[u][t].tweet + "</div></td>";
-                        mytab = mytab + "<td>" + time + "<br><img src='" + data[u][t].img + "' ></td>";
-                        mytab = mytab + "<td><button>like</button></td>"
-                        
+                        mytab = mytab + "<tr id=tr1><td>" + time + "</td></tr>";
+                        mytab = mytab + "<td><img src='" + users[u].profile_picture + "' width='100px'></td>";
+                        mytab = mytab + "<td>" + users[u].username + ":" + "</td>";
+                        mytab = mytab + "<td>" + "<div style='border: 1px #FFFFFF;'>" + "<center>" + data[u][t].tweet + "</center>" + "</div></td>";
+                        mytab = mytab + "<td><button onlclick="+"like()" +">like</button></td>"
+                        mytab = mytab + "<td><img src='" + data[u][t].img + "'  style="+'height:200px; width: 200px;'+"></td>";
+                         mytab = mytab + "<tr><td></td></tr>"
+                        mytab = mytab + "<td>" + "<textarea style="+'width:100px; height:20px'+"id="+'comment'+ count + " type="+'text'+" name="+'thetweet'+" cols="+'100'+" rows="+'3'+"></textarea></td>";
+                        mytab = mytab + "<td><center><button type="+ "button" + "onclick=" + "comment()" + ">Comment</button></center></td>";
+                        mytab = mytab + "<tr><td></td></tr>"
+                        mytab = mytab + "<td><div"+"id=" + 'comdiv' + count + ">" + comment + "</div></td>"
+                        count = count + 1;
+                         
                     } else { 
-                        mytab = mytab + "<td><img src='" + users[u].profile_picture + "' width='50px'></td>";
-                        mytab = mytab + "<td>" + users[u].username + "</td>";
-                        mytab = mytab + "<td>" + "<div id='tweetdiv'>" + data[u][t].tweet + "</div></td>";
-                        mytab = mytab + "<td>" + time + "</td>";
-                        mytab = mytab + "<td><button>like</button></td>"
+                        mytab = mytab + "<tr id=tr1><td>" + time + "</td></tr>";
+                        mytab = mytab + "<td><img src='" + users[u].profile_picture + "' width='100px'></td>";
+                        mytab = mytab + "<td>" + users[u].username + ":" + "</td>";
+                        mytab = mytab + "<td>" + "<div style='border:1px #FFFFFF;'>" + "<center>" + data[u][t].tweet + "</center>" + "</div></td>";
+                        mytab = mytab + "<td><button>like</button></td>"; 
+                        mytab = mytab + "<tr><td></td></tr>"
+                        mytab = mytab + "<td>" + "<textarea style="+'width:150px; height:30px;' + "id="+'comment'+ count +" type="+'text'+" name="+'thetweet'+" cols="+'100'+" rows="+'3'+"></textarea></td>";
+                        mytab = mytab + "<td><center><button type="+ "button" + "onclick=" + "comment()" + ">Comment</button></center></td>";
+                         mytab = mytab + "<tr><td></td></tr>"
+                        mytab = mytab + "<td><div"+"id=" + 'comdiv' + count + ">" + comment + "</div></td>"
+                         count = count + 1;
                     } 
                     mytab = mytab + "</tr>";
                 }   
@@ -145,8 +208,7 @@
                 mydiv.innerHTML = mylist;
             });
             };
-                                                   
-                                                   
+                                                                                       
         function tweet() {
             
             var twitdoc = document.getElementById("twit");
@@ -155,7 +217,7 @@
             var nameValue = twitdoc.value;
             var imgValue = twitimg.innerHTML;
             var js_time = Date.now();
-            var tweetid = firebase.database().ref('tweets/' + userId + "/").push({tweet: nameValue, time: js_time, img: imgValue, rate: twitrate});
+            var tweetid = firebase.database().ref('tweets/' + userId + "/").push({tweet: nameValue, time: js_time, img: imgValue, rate: twitrate, comments: This is a practice comment});
             twitdoc.value = "";
             imgValue = "";
             console.log("tweet written")
@@ -183,7 +245,7 @@
         }
         
         function clear() {
-                document.getElementById("inputFileToLoad") = null;
+                document.getElementById("inputFileToLoad").innerHTML = "";
             
         }
         function rate1() {
@@ -222,10 +284,20 @@
     
     
     </script>
-
+    
     
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
+        table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th, td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
         #mytweets {
             background-color: white;
             color: crimson;
@@ -240,12 +312,13 @@
             font-family: inherit;
         }
         #nav2 {
-            float: right;
             color: black;
             background-color: white;
             width: 300px;
             height: 300px;
             border: 5px solid black;
+            position: fixed;
+          
         }
         #nav1 {
             border: 5px solid black;
@@ -256,8 +329,6 @@
             
         }
         #tweetdiv {
-            height: 100px;
-            width: 100px;
             background-color: black;
             
         }
@@ -271,6 +342,10 @@
             width: 110px;
             float:right;
 
+        }
+        #tr1 {
+            font-size: 75%;
+            color: grey;
         }
         #button1:hover {
             background-color: crimson;
@@ -314,41 +389,51 @@
 
         .dropdown:hover .dropbtn {background-color: aqua;}
         </style>
-    <nav id=nav1>
-        <button id=button1>About</button>
-        <button id="button1" onclick="getData()">Get Data</button>
-        <button id=button1 onclick="signin()">Sign in</button>
-        <button id=button1 onclick="signout()">Sign out</button>
-    
-        <div class="dropdown">
-            
-          <button id="button1" class="dropbtn">Profile</button>
-          <div class="dropdown-content">
-            <a>
-                <div style="font-size: 150%">Your Profile:</div>
-                Name:<div id="mydata"></div>
-                <br>
-                <div id="myphoto"></div>
-            </a>
-          </div>
-        </div>
-    </nav>
     <div id="myfdiv" style="float: right"></div>
     <div id="twitdiv"></div>
-    <button id="button2" onclick="rate1()">That's So Cool!</button>
-    <button id="button2" onclick="rate2()">That's Hilarious!</button>
-    <button id="button2" onclick="rate3()">Interesting!</button>
-    <button id="button2" onclick="rate4()">O!</button>
         <br>
-        <nav id="nav2">
-        <form>
-            <center>Tweet:<br></center>
-            <center><textarea id="twit" type="text" name="thetweet" cols="100" rows="4"></textarea></center>
-        </form> 
-        <center><button type="button" onclick="tweet()">Submit</button></center>
-    
-       <center><input id="inputFileToLoad" type="file" onchange="encodeImageFileAsURL();" /><button type="button" onclick="clear()">Clear</button></center>
-        </nav>
         <div id="imgTest" style="display:none;"></div>
-        <div id="mytweets"></div>  
+    <center><div id="mytweets"></div></center>
+        <style>
+.collapsible {
+  background-color: black;
+  color: white;
+  cursor: pointer;
+  padding: 18px;
+  border: none;
+  width: 10px;
+  height: 10px
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+}
+
+.active, .collapsible:hover {
+  background-color: grey;
+}
+
+.content {
+  float: left;
+  padding: 0 18px;
+  display: none;
+  overflow: hidden;
+  background-color: #f1f1f1;
+}
+</style>
+<script>
+var coll = document.getElementsByClassName("collapsible");
+var i;
+
+for (i = 0; i < coll.length; i++) {
+  coll[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var content = this.nextElementSibling;
+    if (content.style.display === "block") {
+      content.style.display = "none";
+    } else {
+      content.style.display = "block";
+    }
+  });
+}
+</script>
 </html>
