@@ -215,9 +215,10 @@
             var twitimg = document.getElementById("imgTest");
             var twitrate = document.getElementById("twitdiv").innerHTML;
             var nameValue = twitdoc.value;
+            var twitcom = "This is a practice comment";
             var imgValue = twitimg.innerHTML;
             var js_time = Date.now();
-            var tweetid = firebase.database().ref('tweets/' + userId + "/").push({tweet: nameValue, time: js_time, img: imgValue, rate: twitrate, comments: This is a practice comment});
+            var tweetid = firebase.database().ref('tweets/' + userId + "/").push({tweet: nameValue, time: js_time, img: imgValue, rate: twitrate, comments: twitcom});
             twitdoc.value = "";
             imgValue = "";
             console.log("tweet written")
